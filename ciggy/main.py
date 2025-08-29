@@ -1,5 +1,8 @@
+import tarfile
+from zipfile import is_zipfile
 from ciggy.config import bookmarks_path
 from bs4 import BeautifulSoup as bs
+import pathlib
 
 
 class CiggyAttrs():
@@ -23,7 +26,7 @@ class CiggyAttrs():
 class Ciggy():
     def __init__(self, tags: set = set(), file_name: str = str()):
         self.tags = tags
-        self.title = file_name
+        self.file_name = file_name
         self.__set_init_tags()
 
     def __set_init_tags(self):
@@ -41,13 +44,13 @@ class Ciggy():
         return output
 
 
-def _file_parsing(content):
+def _file_parsing(content, file_name: str = ''):
     """Given the file descriptor parse the page and extract the content.
     Mainly title and s tags
     """
     soup = bs(content, 'lxml')
     tags = set([tag.name for tag in soup.find_all()])
-    cg = Ciggy(file_name="hello", tags=tags)
+    cg = Ciggy(file_name=file_name, tags=tags)
     for tag in tags:
         all_tags = soup.find_all(tag)
         if len(all_tags) == 1:
@@ -63,25 +66,52 @@ def _file_parsing(content):
     return cg
 
 
-def main():
+def parse_file(file) -> list:
+    # if tarfile.is_tarfile(file):
+    #     result = []
+    #     with tarfile.open(file, "r:gz") as tar:
+    #         for member in tar.getmembers():
+    #             f = tar.extractfile(member)
+    #             if f is not None:
+    #                 file_name = str(f)
+    #                 content = f.read()
+    #                 result.append({
+    #                     'file_name': f,
+    #                     'data': _file_parsing(content, file_name)
+    #                 })
+    # elif is_zipfile(file):
+    #     pass
+    # else:
+    with open(file, mode='r', encoding='utf-8') as f:
+        file_name = str(file)
+        content = f.read()
+        result = [{
+            'file_name': file,
+            'data': _file_parsing(content, file_name)
+        }]
+    return result
+
+
+def parse_folder(path: pathlib.PosixPath, rec_th: int):
     results = []
-    file_content = {}
-    for file in bookmarks_path.iterdir():
-        if file.is_file():
-            try:
-                with open(file, mode='r', encoding='utf-8') as f:
-                    content = f.read()
-                    file_content.update({
-                        'file_name': str(file),
-                        'data': _file_parsing(content)
-                    })
-                    results.append(file_content)
-            except UnicodeDecodeError:
-                continue
+    if rec_th < 0:
+        return []
+    for file in path.iterdir():
+        # if file.is_file():
+        # try:
+        results.append(parse_file(file))
+        # except UnicodeDecodeError:
+        #     if is_zipfile(file):
+        #         print("IS ZIPPA")
+        #     else:
+        #         print("SOMETHING ELSE")
+        # else:
+            # rec_th -= 1
+            # results += parse_folder(path=file, rec_th=rec_th)
     return results
 
 
 if __name__ == '__main__':
-    data = main()
+    data = parse_folder(bookmarks_path, 2)
 
-data = main()
+data = parse_folder(bookmarks_path, 2)
