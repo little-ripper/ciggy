@@ -1,5 +1,4 @@
 import tarfile
-from zipfile import is_zipfile
 from ciggy.config import bookmarks_path
 from bs4 import BeautifulSoup as bs
 import pathlib
@@ -67,21 +66,6 @@ def _file_parsing(content, file_name: str = ''):
 
 
 def parse_file(file) -> list:
-    # if tarfile.is_tarfile(file):
-    #     result = []
-    #     with tarfile.open(file, "r:gz") as tar:
-    #         for member in tar.getmembers():
-    #             f = tar.extractfile(member)
-    #             if f is not None:
-    #                 file_name = str(f)
-    #                 content = f.read()
-    #                 result.append({
-    #                     'file_name': f,
-    #                     'data': _file_parsing(content, file_name)
-    #                 })
-    # elif is_zipfile(file):
-    #     pass
-    # else:
     with open(file, mode='r', encoding='utf-8') as f:
         file_name = str(file)
         content = f.read()
@@ -92,22 +76,24 @@ def parse_file(file) -> list:
     return result
 
 
+def parse_tarfile(file, path_to):
+    with tarfile.open(file, "r") as tf:
+        tf.extractall(path=path_to)
+
+
 def parse_folder(path: pathlib.PosixPath, rec_th: int):
     results = []
     if rec_th < 0:
         return []
     for file in path.iterdir():
-        # if file.is_file():
-        # try:
-        results.append(parse_file(file))
-        # except UnicodeDecodeError:
-        #     if is_zipfile(file):
-        #         print("IS ZIPPA")
-        #     else:
-        #         print("SOMETHING ELSE")
-        # else:
-            # rec_th -= 1
-            # results += parse_folder(path=file, rec_th=rec_th)
+        try:
+            results.append(parse_file(file))
+        except UnicodeDecodeError:
+            path_to = file.parent
+            parse_tarfile(file, path_to)
+        except IsADirectoryError:
+            rec_th -= 1
+            results += parse_folder(path=file, rec_th=rec_th)
     return results
 
 
