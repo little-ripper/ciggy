@@ -1,9 +1,11 @@
+import asyncio
 import json
 import tarfile
 from ciggy.config import bookmarks_path
+from ciggy.api.api import fetch_status
 from bs4 import BeautifulSoup as bs
 import pathlib
-import db
+from ciggy.db import cur, conn, async_session_context
 
 
 class CiggyAttrs:
@@ -157,7 +159,26 @@ def parse_folder(path: pathlib.PosixPath, rec_th: int):
     return results
 
 
+async def main(urls):
+    async with async_session_context() as session:
+        results = await asyncio.gather(
+            *(fetch_status(u) for u in urls)
+        )
+        for url, status in results:
+            cur.execute("INSERT OR REPLACE INTO urls (url, status) VALUES (?, ?)", (url, status))
+        conn.commit()
+
+urls = [
+    'https://imagemagick.org/script/display.php',
+    'https://www.hyperbola.info/',
+    'https://www.parabola.nu/'
+]
+
+asyncio.run(main(urls))
+conn.close()
+
+
 if __name__ == '__main__':
     data = parse_folder(bookmarks_path, 2)
 
-data = parse_folder(bookmarks_path, 2)
+# data = parse_folder(bookmarks_path, 2)
