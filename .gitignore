@@ -213,3 +213,4 @@ TAGS
 
 # data
 bookmarks/*
+*.db$
