@@ -3,6 +3,7 @@ import tarfile
 from ciggy.config import bookmarks_path
 from bs4 import BeautifulSoup as bs
 import pathlib
+import db
 
 
 class CiggyAttrs:
