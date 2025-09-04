@@ -47,7 +47,6 @@ class Ciggy:
 class JsonNy:
     def __init__(self, js: dict = {}):
         self.js = js
-        # self.attributes = set()
         self.__create_(self.js)
 
     def __create_(self, js):
@@ -58,7 +57,6 @@ class JsonNy:
 
         for key, value in iterator:
             try:
-                # self.attributes.add(key)
                 hash(value)
                 setattr(self, key, value)
             except TypeError:
@@ -88,8 +86,18 @@ class JsonNy:
         output += f'{deep})'
         return output
 
-    def __repr__(self):
+    def __str__(self):
         return self._display(self.js, '')
+
+    def __repr__(self):
+        return str(type(self))
+
+
+def is_json(soup):
+    try:
+        return json.loads(soup.text)
+    except json.decoder.JSONDecodeError:
+        return
 
 
 def _file_parsing(content, file_name: str = ''):
@@ -97,51 +105,34 @@ def _file_parsing(content, file_name: str = ''):
     Mainly title and s tags
     """
     soup = bs(content, 'lxml')
-    js = json.loads(soup.text)
-    squi = JsonNy(js)
-    print(squi)
-    breakpoint()
-        # js = json.loads(soup.text)
-        # print(file_name)
-        # for key in js.keys():
-        #     try:
-        #         for ch in js[key]:
-        #             try:
-        #                 for key, val in ch.items():
-        #                     print(f'{key}: {type(val)}')
-        #             except:
-        #                 continue
-        #     except:
-        #         continue
-        # print(js['children'][2]['children'][0].keys())
-    # except:
-        # print("HTML file")
-    tags = set([tag.name for tag in soup.find_all()])
-    cg = Ciggy(file_name=file_name, tags=tags)
-    for tag in tags:
-        all_tags = soup.find_all(tag)
-        if len(all_tags) == 1:
-            try:
-                cg.set_tag_value(tag, all_tags[0].text)
-            except AttributeError:
-                continue
-        else:
-            cg.set_tag_value(
-                tag,
-                [CiggyAttrs(at.attrs, at.text) for at in all_tags]
-            )
-    return cg
+    if data := is_json(soup):
+        return JsonNy(data)
+    else:
+        tags = set([tag.name for tag in soup.find_all()])
+        cg = Ciggy(file_name=file_name, tags=tags)
+        for tag in tags:
+            all_tags = soup.find_all(tag)
+            if len(all_tags) == 1:
+                try:
+                    cg.set_tag_value(tag, all_tags[0].text)
+                except AttributeError:
+                    continue
+            else:
+                cg.set_tag_value(
+                    tag,
+                    [CiggyAttrs(at.attrs, at.text) for at in all_tags]
+                )
+        return cg
 
 
-def parse_file(file) -> list:
+def parse_file(file) -> dict:
     with open(file, mode='r', encoding='utf-8') as f:
         file_name = str(file)
         content = f.read()
-        result = [{
+        return {
             'file_name': file,
             'data': _file_parsing(content, file_name)
-        }]
-    return result
+        }
 
 
 def parse_tarfile(file, path_to):
