@@ -1,10 +1,11 @@
+import json
 import tarfile
 from ciggy.config import bookmarks_path
 from bs4 import BeautifulSoup as bs
 import pathlib
 
 
-class CiggyAttrs():
+class CiggyAttrs:
     def __init__(self, attrs: dict = dict(), text: str = str):
         self.attrs = attrs
         self.text = text
@@ -22,7 +23,7 @@ class CiggyAttrs():
         return output
 
 
-class Ciggy():
+class Ciggy:
     def __init__(self, tags: set = set(), file_name: str = str()):
         self.tags = tags
         self.file_name = file_name
@@ -43,11 +44,78 @@ class Ciggy():
         return output
 
 
+class JsonNy:
+    def __init__(self, js: dict = {}):
+        self.js = js
+        # self.attributes = set()
+        self.__create_(self.js)
+
+    def __create_(self, js):
+        if isinstance(js, dict):
+            iterator = js.items()
+        else:
+            iterator = enumerate(js)
+
+        for key, value in iterator:
+            try:
+                # self.attributes.add(key)
+                hash(value)
+                setattr(self, key, value)
+            except TypeError:
+                setattr(self, key, [])
+                attr = getattr(self, key)
+                for v in value:
+                    attr.append(JsonNy(v))
+
+    def _display(self, attrs: dict, deep: str) -> str:
+        output = f'{deep}JsonNy(\n'
+        items = list(attrs.items())
+        for i, (key, value) in enumerate(items):
+            if isinstance(value, list):
+                output += f'{deep}\t{key}: [\n'
+                for j, val in enumerate(value):
+                    output += self._display(val, deep + '\t\t')
+                    if j < len(value) - 1:
+                        output += ',\n'
+                    else:
+                        output += '\n'
+                output += f'{deep}\t]\n'
+            else:
+                output += f'{deep}\t{key}: {value}'
+                if i < len(items) - 1:
+                    output += ','
+                output += '\n'
+        output += f'{deep})'
+        return output
+
+    def __repr__(self):
+        return self._display(self.js, '')
+
+
 def _file_parsing(content, file_name: str = ''):
     """Given the file descriptor parse the page and extract the content.
     Mainly title and s tags
     """
     soup = bs(content, 'lxml')
+    js = json.loads(soup.text)
+    squi = JsonNy(js)
+    print(squi)
+    breakpoint()
+        # js = json.loads(soup.text)
+        # print(file_name)
+        # for key in js.keys():
+        #     try:
+        #         for ch in js[key]:
+        #             try:
+        #                 for key, val in ch.items():
+        #                     print(f'{key}: {type(val)}')
+        #             except:
+        #                 continue
+        #     except:
+        #         continue
+        # print(js['children'][2]['children'][0].keys())
+    # except:
+        # print("HTML file")
     tags = set([tag.name for tag in soup.find_all()])
     cg = Ciggy(file_name=file_name, tags=tags)
     for tag in tags:

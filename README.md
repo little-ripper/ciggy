@@ -1,34 +1,47 @@
 
 # Table of Contents
 
-1.  [ciggy](#org8974ae0)
-2.  [project steps](#orgb32ed40)
-3.  [setup](#orgd078ad6)
+1.  [ciggy](#orgba48eab)
+2.  [project steps](#org627383a)
+3.  [setup](#org179314e)
 
 
-<a id="org8974ae0"></a>
+<a id="orgba48eab"></a>
 
 # ciggy
 
 A quick bookmark organizer, just fast enough for a smoke!
+The project can be **.split()** in 3 main steps:
+
+1.  parser recursively files
+    -   .html
+    -   .json
+    -   .xml
+2.  load the data and save in db
+3.  build the app to fetch data
 
 
-<a id="orgb32ed40"></a>
+<a id="org627383a"></a>
 
 # TODO project steps
 
--   [ ] Bookmarks/ read the files
+-   [X] Bookmarks/ read the files
     1.  .html
     2.  .json
     3.  folder
--   [ ] fetch data, and check the reposne
 -   [ ] add a SQLite file as database
 -   [ ] use full-stack framework e.g. Flask
 
 
-<a id="orgd078ad6"></a>
+<a id="org179314e"></a>
 
 # setup
 
 -   `ciggy/config`
+-   dependencies
+    -   pydantic
+    -   sqlite
+    -   flask
+-   alembic
+-   pytest
 

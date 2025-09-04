@@ -1,13 +1,19 @@
 # -*- mode:org; -*-
 * ciggy
 A quick bookmark organizer, just fast enough for a smoke!
+The project can be *.split()* in 3 main steps:
+1. parser recursively files
+   - .html
+   - .json
+   - .xml
+2. load the data and save in db
+3. build the app to fetch data     
 
 * TODO project steps
-+ [ ] Bookmarks/ read the files
++ [X] Bookmarks/ read the files
   1. .html
   2. .json
   3. folder
-+ [ ] fetch data, and check the reposne
 + [ ] add a SQLite file as database
 + [ ] use full-stack framework e.g. Flask 
       
